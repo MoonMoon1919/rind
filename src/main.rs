@@ -39,6 +39,8 @@ fn main() {
 
     let fs = FileSystem::new(vec![Box::new(ExtensionFilter::new(String::from("rs")))]);
 
-    let matches = fs.traverse(&root);
-    println!("{:?}", matches);
+    for ele in fs.traverse(&root) {
+        println!("{ele}")
+    };
+
 }
