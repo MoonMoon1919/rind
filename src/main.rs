@@ -2,6 +2,8 @@ use std::io;
 use std::fs;
 use std::path::Path;
 
+use rind::ExtensionFilter;
+use rind::FileSystem;
 use rind::INode;
 
 fn visit_dir(path: &Path, parent: &mut INode) -> io::Result<()> {
@@ -29,11 +31,14 @@ fn visit_dir(path: &Path, parent: &mut INode) -> io::Result<()> {
 fn main() {
     let mut root = INode::new(String::from("."), true, 1, String::from(""), 1);
 
-    if let Ok(result) = visit_dir(Path::new("."), &mut root) {
-        println!("{:?}", result);
-    };
-
-    for child in root.children() {
-        println!("{:?}", child);
+    // Build the tree
+    match visit_dir(Path::new("."), &mut root) {
+        Err(e) => println!("Error! {}", e),
+        _ => (),
     }
+
+    let fs = FileSystem::new(vec![Box::new(ExtensionFilter::new(String::from("rs")))]);
+
+    let matches = fs.traverse(&root);
+    println!("{:?}", matches);
 }
