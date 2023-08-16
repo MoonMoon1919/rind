@@ -7,7 +7,6 @@ use rind::{
     ExtensionFilter,
     SizeFilter,
     FileSystem,
-    INode,
     Filter,
 };
 
@@ -55,16 +54,7 @@ fn main() {
 
     let filters = parse_filter_args(&args);
 
-    // Create the root node
-    let mut root = INode::new(String::from(&args.path), true, 1, String::from(""), 1);
-
-    // Build the tree
-    match rind::visit_dir(Path::new(&args.path), &mut root) {
-        Err(e) => println!("Error! {}", e),
-        _ => (),
-    }
-
-    let fs = FileSystem::new(root);
+    let fs = FileSystem::build(&Path::new(&args.path));
 
     for ele in fs.filter(&filters) {
         println!("{ele}")

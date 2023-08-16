@@ -82,9 +82,44 @@ pub struct FileSystem {
     root: INode,
 }
 
+pub fn visit_dir(path: &Path, parent: &mut INode) -> io::Result<()> {
+    for entry in fs::read_dir(path)? {
+        let entry = entry?;
+        let path = entry.path();
+        let filename = path.to_string_lossy().into_owned();
+
+        let entry_meta = entry.metadata().unwrap();
+        let size = entry_meta.len();
+
+        if path.is_dir() {
+            let mut inode = INode::new(filename, true, size, String::from(""), 1);
+            visit_dir(&path, &mut inode)?;
+            parent.add_child(inode);
+        } else {
+            let extension_split = filename.split(".");
+            let extension = extension_split.last().unwrap().to_string();
+            let child = INode::new(filename, false, size, extension, 1);
+            parent.add_child(child);
+        }
+    }
+
+    Ok(())
+}
 
 impl FileSystem {
     pub fn new(root: INode) -> Self {
+        FileSystem { root }
+    }
+
+    pub fn build(path: &Path) -> Self {
+        let path_meta = path.metadata().unwrap();
+        let mut root = INode::new( path.to_string_lossy().into_owned(), path.is_dir(), path_meta.len(), String::from(""), 1);
+
+        match visit_dir(path, &mut root) {
+            Err(e) => panic!("Error! {}", e),
+            _ => (),
+        }
+
         FileSystem { root }
     }
 
@@ -114,29 +149,7 @@ impl FileSystem {
 }
 
 
-pub fn visit_dir(path: &Path, parent: &mut INode) -> io::Result<()> {
-    for entry in fs::read_dir(path)? {
-        let entry = entry?;
-        let path = entry.path();
-        let filename = path.to_string_lossy().into_owned();
 
-        let entry_meta = entry.metadata().unwrap();
-        let size = entry_meta.len();
-
-        if path.is_dir() {
-            let mut inode = INode::new(filename, true, size, String::from(""), 1);
-            visit_dir(&path, &mut inode)?;
-            parent.add_child(inode);
-        } else {
-            let extension_split = filename.split(".");
-            let extension = extension_split.last().unwrap().to_string();
-            let child = INode::new(filename, false, size, extension, 1);
-            parent.add_child(child);
-        }
-    }
-
-    Ok(())
-}
 
 
 #[cfg(test)]
