@@ -59,5 +59,4 @@ fn main() {
     for ele in fs.filter(&filters) {
         println!("{ele}")
     };
-
 }
