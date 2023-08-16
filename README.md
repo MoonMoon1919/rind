@@ -9,5 +9,5 @@ Rind supports the basic functionality of find. It can traverse a filesystem sear
 To start, Rind will support the following behavior:
 - Searching for files in a given directory using the flag `--path`
 - Searching for files with a given extensions using the flag `--ext`
-- Searching for files larger than a specific size using the flag `--size-gt`
-- Searching for files that are _newer_ than a given timestamp `--time-gt`
+- Searching for files larger than a specific size using the flag `--size`
+- Searching for files that are _newer_ than a given timestamp `--created_after`
