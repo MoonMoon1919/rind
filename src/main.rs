@@ -5,7 +5,6 @@ use clap::Parser;
 use rind::{
     self,
     ExtensionFilter,
-    DateFilter,
     SizeFilter,
     FileSystem,
     INode,
@@ -27,10 +26,6 @@ struct Args {
     /// (Optional) Return only files whose size is greater than this value
     #[arg(short, long)]
     size: Option<u64>,
-
-    /// (Optional) Return only files which were created after this date
-    #[arg(short, long)]
-    created_after: Option<u64>,
 }
 
 fn parse_filter_args(args: &Args) -> Vec<Box<dyn Filter>> {
@@ -47,14 +42,6 @@ fn parse_filter_args(args: &Args) -> Vec<Box<dyn Filter>> {
     match &args.size {
         Some(v) => {
             let filter = Box::new(SizeFilter::new(v.to_owned()));
-            filters.push(filter);
-        },
-        _ => ()
-    }
-
-    match &args.created_after {
-        Some(v) => {
-            let filter = Box::new(DateFilter::new(v.to_owned()));
             filters.push(filter);
         },
         _ => ()

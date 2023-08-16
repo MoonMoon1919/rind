@@ -10,4 +10,3 @@ To start, Rind will support the following behavior:
 - Searching for files in a given directory using the flag `--path`
 - Searching for files with a given extensions using the flag `--ext`
 - Searching for files larger than a specific size using the flag `--size`
-- Searching for files that are _newer_ than a given timestamp `--created_after` (not currently available)

@@ -2,7 +2,7 @@ use std::io;
 use std::fs;
 use std::path::Path;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct INode {
     name: String,
     is_directory: bool,
@@ -77,23 +77,6 @@ impl Filter for SizeFilter {
     }
 }
 
-// Date filter
-pub struct DateFilter {
-    create_time: u64
-}
-
-impl DateFilter {
-    pub fn new(create_time: u64) -> Self {
-        DateFilter { create_time }
-    }
-}
-
-impl Filter for DateFilter {
-    fn apply(&self, value: &INode) -> bool {
-        self.create_time < value.create_time
-    }
-}
-
 // Filesystem
 pub struct FileSystem {
     root: INode,
@@ -153,4 +136,73 @@ pub fn visit_dir(path: &Path, parent: &mut INode) -> io::Result<()> {
     }
 
     Ok(())
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn inode_can_add_child() {
+        let mut parent = INode::new(String::from("parent"), true, 1, String::from(""), 1);
+        let child = INode::new(String::from("child"), false, 1, String::from("rs"), 1);
+        let cloned_child = child.clone();
+
+        parent.add_child(child);
+
+        assert!(parent.children().contains(&cloned_child));
+    }
+
+    #[test]
+    fn filesystem_can_filter_by_extension() {
+        // Given
+        let mut parent = INode::new(String::from("parent"), true, 1, String::from(""), 1);
+        let child = INode::new(String::from("child"), false, 1, String::from("rs"), 1);
+        let cloned_child = child.clone();
+
+        parent.add_child(child);
+        let fs = FileSystem::new(parent);
+
+        let filters: Vec<Box<dyn Filter>> = vec![Box::new(ExtensionFilter { extension: String::from("rs")})];
+
+        // When
+        let results = fs.filter(&filters);
+
+        // Then
+        assert!(results.contains(&cloned_child.name()));
+    }
+
+    #[test]
+    fn filesystem_can_filter_by_size() {
+        // Given
+        let mut parent = INode::new(String::from("parent"), true, 1, String::from(""), 1);
+        let child = INode::new(String::from("child"), false, 100, String::from("rs"), 1);
+        let cloned_child = child.clone();
+
+        parent.add_child(child);
+        let fs = FileSystem::new(parent);
+
+        let filters: Vec<Box<dyn Filter>> = vec![Box::new(SizeFilter { size: 99 })];
+
+        // When
+        let results = fs.filter(&filters);
+
+        // Then
+        assert!(results.contains(&cloned_child.name()));
+    }
+
+    #[test]
+    fn filter_can_handle_empty_children() {
+        // Given
+        let parent = INode::new(String::from("parent"), true, 1, String::from(""), 1);
+        let fs = FileSystem::new(parent);
+        let filters: Vec<Box<dyn Filter>> = vec![Box::new(SizeFilter { size: 99 })];
+
+        // When
+        let results = fs.filter(&filters);
+
+        // Then
+        assert!(results.is_empty());
+    }
 }
